@@ -14,5 +14,10 @@ namespace Monithor.Dtos
         public string Name { get;}
         public string Description { get; }
         public ErrorCode Code { get; }
+
+        public override string ToString()
+        {
+            return $"{Code}-{Name} : {Description}";
+        }
     }
 }

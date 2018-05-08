@@ -10,9 +10,9 @@ using Monithor.Ports;
 
 namespace Monithor
 {
-    public class MessageHandler
+    public class MessageHandler : IMessageHandler
     {
-        private readonly IHubConnector _hubConnector;
+        private readonly IHub _hub;
         private readonly ITraceStorage _traceStorage;
         private readonly IList<Receiver> _receivers;
         private readonly IList<Emitter> _emitters;
@@ -23,12 +23,12 @@ namespace Monithor
         private readonly TimeSpan _idleDetectionThreshold;
 
         public MessageHandler(
-            IHubConnector hubConnector,
-            ITraceStorage traceStorage, 
+            IHub hub,
+            ITraceStorage traceStorage,
             TimeSpan idleDetectionFrequency,
             TimeSpan idleDetectionThreshold)
         {
-            _hubConnector = hubConnector;
+            _hub = hub;
             _traceStorage = traceStorage;
             _idleDetectionFrequency = idleDetectionFrequency;
             _idleDetectionThreshold = idleDetectionThreshold;
@@ -36,26 +36,30 @@ namespace Monithor
             _receivers = new List<Receiver>();
             _emitters = new List<Emitter>();
 
-            _hubConnector.EmitterConnected += OnEmitterConnected;
-            _hubConnector.ReceiverConnected += OnReceiverConnected;
-            _hubConnector.MetricUpdated += OnMetricUpdated;
-            _hubConnector.TraceReceived += OnTraceReceived;
-            _hubConnector.ActorHeartbeated += OnActorHeartbeated;
 
             _timer = new Timer((e) => DetectIdles(), null, TimeSpan.FromMilliseconds(0), _idleDetectionFrequency);
         }
 
-        private void OnActorHeartbeated(Actor actor)
-        {
-            actor.LastHeartbeatReceivedDate = DateTime.UtcNow;
 
+
+        public void EmitterConnected(Emitter emitter)
+        {
+            emitter.LastHeartbeatReceivedDate = DateTime.UtcNow;
+            emitter.LastMessageEmittedDate = DateTime.UtcNow;
+            _emitters.Add(emitter);
         }
 
-        private void OnTraceReceived(Trace trace)
+        public void ReceiverConnected(Receiver receiver)
+        {
+            receiver.LastHeartbeatReceivedDate = DateTime.UtcNow;
+            _receivers.Add(receiver);
+        }
+
+        public void TraceReceived(Trace trace)
         {
             if (!_emitters.Contains(trace.Emitter))
             {
-                _hubConnector.NotifyError(trace.Emitter, new Error("Not Connected", "Must be connected before emitting", ErrorCode.NotConnected));
+                _hub.NotifyError(trace.Emitter, new Error("Not Connected", "Must be connected before emitting", ErrorCode.NotConnected));
                 return;
             }
 
@@ -63,35 +67,37 @@ namespace Monithor
 
             foreach (var receiver in _receivers)
             {
-                _hubConnector.NotifyTraceReceived(receiver, trace);
+                _hub.NotifyTraceReceived(receiver, trace);
             }
         }
 
-        private void OnMetricUpdated(Metric metric)
+        public void MetricUpdated(Metric metric)
         {
             if (!_emitters.Contains(metric.Emitter))
             {
-                _hubConnector.NotifyError(metric.Emitter, new Error("Not Connected", "Must be connected before emitting", ErrorCode.NotConnected));
+                _hub.NotifyError(metric.Emitter, new Error("Not Connected", "Must be connected before emitting", ErrorCode.NotConnected));
                 return;
             }
 
             foreach (var receiver in _receivers)
             {
-                _hubConnector.NotifyMetricUpdated(receiver, metric);
+                _hub.NotifyMetricUpdated(receiver, metric);
             }
         }
 
-        private void OnReceiverConnected(Receiver receiver)
+        public void ActorHeartbeated(Actor actor)
         {
-            receiver.LastHeartbeatReceivedDate = DateTime.UtcNow;
-            _receivers.Add(receiver);
+            actor.LastHeartbeatReceivedDate = DateTime.UtcNow;
         }
 
-        private void OnEmitterConnected(Emitter emitter)
+        public Actor GetActorById(string id)
         {
-            emitter.LastHeartbeatReceivedDate = DateTime.UtcNow;
-            emitter.LastMessageEmittedDate = DateTime.UtcNow;
-            _emitters.Add(emitter);
+            var emitter = _emitters.SingleOrDefault(e => e.Id == id);
+
+            if (emitter == null)
+                return _receivers.Single(e => e.Id == id);
+
+            return emitter;
         }
 
         private void DetectIdles()
@@ -101,7 +107,7 @@ namespace Monithor
                 if (DateTime.UtcNow - emitter.LastHeartbeatReceivedDate > _idleDetectionThreshold)
                 {
                     _emitters.Remove(emitter);
-                    _hubConnector.NotifyDisconnection(emitter);
+                    _hub.NotifyDisconnection(emitter);
                 }
             }
 
@@ -110,7 +116,7 @@ namespace Monithor
                 if (DateTime.UtcNow - receiver.LastHeartbeatReceivedDate > _idleDetectionThreshold)
                 {
                     _receivers.Remove(receiver);
-                    _hubConnector.NotifyDisconnection(receiver);
+                    _hub.NotifyDisconnection(receiver);
                 }
             }
         }
