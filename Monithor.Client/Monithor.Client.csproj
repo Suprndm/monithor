@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Monithor\Definitions\ErrorCode.cs" Link="ErrorCode.cs" />
+    <Compile Include="..\Monithor\Definitions\MessageLevel.cs" Link="MessageLevel.cs" />
+    <Compile Include="..\Monithor\Definitions\MessageType.cs" Link="MessageType.cs" />
+    <Compile Include="..\Monithor\Dtos\Error.cs" Link="Error.cs" />
+    <Compile Include="..\Monithor\Dtos\Metric.cs" Link="Metric.cs" />
+    <Compile Include="..\Monithor\Dtos\Trace.cs" Link="Trace.cs" />
+    <Compile Include="..\Monithor\Entities\Actor.cs" Link="Actor.cs" />
+    <Compile Include="..\Monithor\Entities\Emitter.cs" Link="Emitter.cs" />
+    <Compile Include="..\Monithor\Entities\Receiver.cs" Link="Receiver.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="1.0.0-rc1-final" />
+  </ItemGroup>
+
+</Project>

@@ -16,12 +16,12 @@ namespace Monithor.Api.Hub
 
         public void NotifyTraceReceived(Receiver receiver, Trace trace)
         {
-            _hubContext.Clients.Client(receiver.Id).SendAsync("OnTraceReceived");
+            _hubContext.Clients.Client(receiver.Id).SendAsync("TraceReceived", trace);
         }
 
         public void NotifyMetricUpdated(Receiver receiver, Metric metric)
         {
-            _hubContext.Clients.Client(receiver.Id).SendAsync("OnMetricUpdated");
+            _hubContext.Clients.Client(receiver.Id).SendAsync("MetricUpdated", metric);
         }
 
         public void NotifyDisconnection(Actor actor)

@@ -11,7 +11,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Monithor.Client\Monithor.Client.csproj" />
-    <ProjectReference Include="..\Monithor\Monithor.csproj" />
   </ItemGroup>
 
 </Project>

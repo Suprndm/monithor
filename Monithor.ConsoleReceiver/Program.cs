@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.Logging;
-using Monithor.Dtos;
+using Monithor.Client;
 
 namespace Monithor.ConsoleReceiver
 {
@@ -16,25 +14,20 @@ namespace Monithor.ConsoleReceiver
 
         static async Task MainAsync()
         {
-            // Keep trying to until we can start
             var displayer = new Displayer();
-            var connection = new HubConnectionBuilder()
-                .WithUrl("http://localhost:52903/thorhub")
-                .Build();
+
+            var monithorReceiver = new MonithorReceiver("http://localhost:52903/thorhub", "ConsoleReceiver");
+
             try
             {
-                await connection.StartAsync();
-                displayer.LogTrace("Connected !");
+                await monithorReceiver.Connect();
             }
-            catch (Exception e)
+            catch (MonithorClientException e)
             {
-                displayer.LogException("connection failed =(", e);
+                displayer.LogException("monithor receiver error occured =(", e);
             }
 
-            connection.On("Disconnection", () => { displayer.LogTrace("Disconnected because idle"); });
-            connection.On<Error>("Error", (error) => { displayer.LogError(error.ToString()); });
-
-            await connection.SendAsync("DeclareReceiver", "ConsoleReceiver");
+            monithorReceiver.TraceReceived += (trace) => displayer.LogTrace(trace.Name);
         }
     }
 }
