@@ -32,13 +32,16 @@ namespace Monithor.ConsoleEmitter
                 displayer.LogException("monithor emitter error occured =(", e);
             }
 
+            int i = 0;
             do
             {
-                await Task.Delay(3000);
+                await Task.Delay(200);
                 try
                 {
-                    await monithorEmitter.Trace(MessageLevel.Verbose, MessageType.Communication, "Basic Trace",
-                        "just been able to trace stuff", string.Empty);
+                    await monithorEmitter.UpdateMetric(MessageLevel.Verbose, MessageType.Communication, "posX",
+                        i.ToString());
+                    displayer.LogTrace($"sent metric posX {i}");
+                    i++;
                 }
                 catch (MonithorClientException e)
                 {

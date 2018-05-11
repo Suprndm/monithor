@@ -32,7 +32,8 @@ namespace Monithor.ConsoleReceiver
                 displayer.LogException("monithor receiver error occured =(", e);
             }
 
-            monithorReceiver.TraceReceived += (trace) => displayer.LogTrace(trace.Name);
+            monithorReceiver.TraceReceived  += (trace) => displayer.LogTrace(trace.Name);
+            monithorReceiver.MetricUpdated  += (metric) => displayer.LogTrace($" {metric.Name} : {metric.Value}");
         }
     }
 }

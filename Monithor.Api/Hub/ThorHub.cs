@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Monithor.Api.Logging;
 using Monithor.Definitions;
@@ -11,16 +12,13 @@ namespace Monithor.Api.Hub
     public class ThorHub : ManagedHub
     {
         private readonly IMessageHandler _messageHandler;
-        private readonly IList<Emitter> _connectedEmitters;
-        private readonly IList<Receiver> _connectedReceivers;
         private readonly ILogger _logger;
 
         public ThorHub(IMessageHandler messageHandler, ILogger logger)
         {
             _messageHandler = messageHandler;
             _logger = logger;
-            _connectedEmitters= new List<Emitter>();
-            _connectedReceivers = new List<Receiver>();
+            PingFrequency = TimeSpan.FromMilliseconds(0);
         }
 
         public override async Task OnConnectedAsync()
@@ -32,14 +30,12 @@ namespace Monithor.Api.Hub
         public void DeclareReceiver(string name)
         {
             var receiver = new Receiver(name, Context.ConnectionId);
-            _connectedReceivers.Add(receiver);
             _messageHandler.ReceiverConnected(receiver);
         }
 
         public void DeclareEmitter(string name)
         {
             var emitter = new Emitter(name, Context.ConnectionId);
-            _connectedEmitters.Add(emitter);
             _messageHandler.EmitterConnected(emitter);
         }
 

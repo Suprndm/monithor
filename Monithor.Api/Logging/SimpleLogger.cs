@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Monithor.Api.Logging
 {
-    public class SimpleLogger :ILogger, ILogCollector
+    public class SimpleLogger : ILogger, ILogCollector
     {
         private readonly IList<string> _allLogs;
 
@@ -14,12 +15,17 @@ namespace Monithor.Api.Logging
 
         public void Log(string message)
         {
-            _allLogs.Add($"{DateTimeOffset.UtcNow} : {message}");
+            if (_allLogs.Count > 1000)
+            {
+                _allLogs.RemoveAt(0);
+            }
+
+            _allLogs.Add($"{DateTimeOffset.UtcNow.ToString("MM/dd/yyyy hh:mm:ss.fff")} : {message}");
         }
 
         public IList<string> GetAllLogs()
         {
-            return _allLogs;
+            return _allLogs.Reverse().ToList();
         }
     }
 }

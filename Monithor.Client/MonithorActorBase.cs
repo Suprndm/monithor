@@ -23,7 +23,7 @@ namespace Monithor.Client
         protected MonithorActorBase(string baseUrl, string name)
         {
             _name = name;
-            _client = new SignalRClient(name, baseUrl);
+            _client = new SignalRClient(name, baseUrl, pingPongFrequencyMs:1000);
             _client.Connected += _client_Connected;
             _client.Disconnected += _client_Disconnected;
             _client.ConnectionStatusChanged += _client_ConnectionStatusChanged;
