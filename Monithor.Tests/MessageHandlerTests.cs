@@ -15,8 +15,6 @@ namespace Monithor.Tests
         private ITraceStorage _traceStorage;
         private IHub _hub;
         private MessageHandler _messageHandler;
-        private readonly TimeSpan _idleDetectionFrequency = TimeSpan.FromMilliseconds(100);
-        private readonly TimeSpan _idleDetectionThreshold = TimeSpan.FromMilliseconds(500);
 
         [SetUp]
         public void Setup()
@@ -24,7 +22,7 @@ namespace Monithor.Tests
             _traceStorage = Substitute.For<ITraceStorage>();
             _hub = Substitute.For<IHub>();
 
-            _messageHandler = new MessageHandler(_hub, _traceStorage, _idleDetectionFrequency, _idleDetectionThreshold);
+            _messageHandler = new MessageHandler(_hub, _traceStorage, Substitute.For<ILogger>());
         }
 
         [Test]
@@ -107,84 +105,6 @@ namespace Monithor.Tests
             _hub.Received(1).NotifyTraceReceived(receiver1, trace);
             _hub.Received(1).NotifyTraceReceived(receiver2, trace);
             _hub.Received(1).NotifyTraceReceived(receiver3, trace);
-        }
-
-
-        [Test]
-        public void ShouldDisconnectEmitterIfIdleForTooLong()
-        {
-            // Given the emitter
-            var emitter = CraftEmitter("A");
-            var metric = CraftMetric(emitter);
-            _messageHandler.EmitterConnected(emitter);
-
-            // When too much time passes
-            Task.Delay((int)_idleDetectionThreshold.TotalMilliseconds * 2).Wait();
-
-            // Then message Handler should notify disconnection
-            _hub.Received(1).NotifyDisconnection(emitter);
-
-            // Then emitter no longer can emit
-            _messageHandler.MetricUpdated(metric);
-            _hub.Received(1).NotifyError(emitter, Arg.Is<Error>((e) => e.Code == ErrorCode.NotConnected));
-        }
-
-        [Test]
-        public void ShouldDisconnectReceiverIfIdleForTooLong()
-        {
-            // Given the receiver
-            var receiver = CraftReceiver("1");
-            _messageHandler.ReceiverConnected(receiver);
-
-            // When too much time passes
-            Task.Delay((int)_idleDetectionThreshold.TotalMilliseconds * 2).Wait();
-
-            // Then message Handler should notify disconnection
-            _hub.Received(1).NotifyDisconnection(receiver);
-
-            // Then emitter no longer can emit
-            var emitter = CraftEmitter("A");
-            var metric = CraftMetric(emitter);
-            _messageHandler.EmitterConnected(emitter);
-            _messageHandler.MetricUpdated(metric);
-
-            _hub.Received(0).NotifyMetricUpdated(receiver, metric);
-        }
-
-        [Test]
-        public void ShouldNotDisconnectReceiverIfHeartbeated()
-        {
-            // Given the receiver
-            var receiver = CraftReceiver("1");
-            _messageHandler.ReceiverConnected(receiver);
-
-            // When receiver send regular heartbeats
-            for (int i = 0; i < 10; i++)
-            {
-                _messageHandler.ActorHeartbeated(receiver);
-                Task.Delay(200);
-            }
-
-            // Then receiver should not be disconnected
-            _hub.Received(0).NotifyDisconnection(receiver);
-        }
-
-        [Test]
-        public void ShouldNotDisconnectEmitterIfHeartbeated()
-        {
-            // Given the emitter
-            var emitter = CraftEmitter("1");
-            _messageHandler.EmitterConnected(emitter);
-
-            // When emitter send regular heartbeats
-            for (int i = 0; i < 10; i++)
-            {
-                _messageHandler.ActorHeartbeated(emitter);
-                Task.Delay(200);
-            }
-
-            // Then emitter should not be disconnected
-            _hub.Received(0).NotifyDisconnection(emitter);
         }
 
         private Trace CraftTrace(Emitter emitter)

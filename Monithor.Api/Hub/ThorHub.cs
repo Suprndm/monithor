@@ -1,20 +1,24 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Monithor.Api.Logging;
 using Monithor.Definitions;
 using Monithor.Dtos;
 using Monithor.Entities;
+using SignalRHelper.Server;
 
 namespace Monithor.Api.Hub
 {
-    public class ThorHub : Microsoft.AspNetCore.SignalR.Hub
+    public class ThorHub : ManagedHub
     {
         private readonly IMessageHandler _messageHandler;
         private readonly IList<Emitter> _connectedEmitters;
         private readonly IList<Receiver> _connectedReceivers;
+        private readonly ILogger _logger;
 
-        public ThorHub(IMessageHandler messageHandler)
+        public ThorHub(IMessageHandler messageHandler, ILogger logger)
         {
             _messageHandler = messageHandler;
+            _logger = logger;
             _connectedEmitters= new List<Emitter>();
             _connectedReceivers = new List<Receiver>();
         }
@@ -52,12 +56,6 @@ namespace Monithor.Api.Hub
             var emitter = _messageHandler.GetActorById(Context.ConnectionId);
             var metric = new Metric((Emitter)emitter, level, type, name, value);
             _messageHandler.MetricUpdated(metric);
-        }
-
-        public void Heartbeat()
-        {
-            var actor = _messageHandler.GetActorById(Context.ConnectionId);
-            _messageHandler.ActorHeartbeated(actor);
         }
     }
 }

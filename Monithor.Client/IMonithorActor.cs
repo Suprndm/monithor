@@ -8,8 +8,8 @@ namespace Monithor.Client
     {
         event Action<Error> OnError;
 
-        void Disconnect();
+        Task DisconnectAsync();
 
-        Task Connect();
+        void Connect();
     }
 }

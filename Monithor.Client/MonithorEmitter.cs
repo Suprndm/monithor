@@ -17,7 +17,6 @@ namespace Monithor.Client
         {
             try
             {
-                await EnsureConnection();
                 await Connection.SendAsync("SendTrace", level, type, name, message, metaData);
             }
             catch (Exception e)
@@ -30,7 +29,6 @@ namespace Monithor.Client
         {
             try
             {
-                await EnsureConnection();
                 await Connection.SendAsync("UpdateMetric", level, type, name, value);
             }
             catch (Exception e)

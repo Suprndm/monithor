@@ -18,9 +18,14 @@ namespace Monithor.ConsoleReceiver
 
             var monithorReceiver = new MonithorReceiver("http://localhost:52903/thorhub", "ConsoleReceiver");
 
+            monithorReceiver.Connected += () => { displayer.LogTrace("Connected !"); };
+            monithorReceiver.Disconnected += () => { displayer.LogTrace("Disconnected =( "); };
+            monithorReceiver.ConnectionStatusChanged += (status) => { displayer.LogTrace($"Connection status changed to {status}"); };
+
             try
             {
-                await monithorReceiver.Connect();
+                 monithorReceiver.Connect();
+
             }
             catch (MonithorClientException e)
             {

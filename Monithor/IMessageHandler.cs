@@ -8,9 +8,9 @@ namespace Monithor
     {
         void EmitterConnected(Emitter emitter);
         void ReceiverConnected(Receiver receiver);
+        void SomeoneDisconnected(string clientId);
         void TraceReceived(Trace trace);
         void MetricUpdated(Metric metric);
-        void ActorHeartbeated(Actor actor);
 
         Actor GetActorById(string id);
     }

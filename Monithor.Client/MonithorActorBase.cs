@@ -1,89 +1,86 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
+using Monithor.Definitions;
 using Monithor.Dtos;
+using SignalRHelper.Client;
 
 namespace Monithor.Client
 {
     public abstract class MonithorActorBase : IMonithorActor
     {
-        private readonly string _baseUrl;
+        protected HubConnection Connection => _client.HubConnection;
+
         private readonly string _name;
-        private readonly TimeSpan _heartbeatFrequency = TimeSpan.FromMilliseconds(1000);
-        private bool _isConnected;
-        private Timer _timer;
-        protected HubConnection Connection { get; private set; }
+        private readonly SignalRClient _client;
 
         public event Action<Error> OnError;
 
+        public event Action Connected;
+        public event Action Disconnected;
+        public event Action<ConnectionStatus> ConnectionStatusChanged;
+
         protected MonithorActorBase(string baseUrl, string name)
         {
-            _baseUrl = baseUrl;
             _name = name;
+            _client = new SignalRClient(name, baseUrl);
+            _client.Connected += _client_Connected;
+            _client.Disconnected += _client_Disconnected;
+            _client.ConnectionStatusChanged += _client_ConnectionStatusChanged;
+            _client.ExceptionOccured += _client_ExceptionOccured;
         }
 
-        private void Initialize()
+        private void _client_ConnectionStatusChanged(SignalRHelper.Client.ConnectionStatus connectionStatus)
         {
-            _isConnected = false;
-            Connection.On("Disconnection", () => throw new MonithorClientException($"Client disconnected because idle"));
-            Connection.On<Error>("Error", (error) => throw new MonithorClientException($"Server return error : {error.ToString()}"));
+            ConnectionStatusChanged?.Invoke(MapConnectionStatus(connectionStatus));
         }
 
-        private void Heartbeat()
+        private void _client_Disconnected()
         {
-            try
-            {
-                Connection.SendAsync("Heartbeat").Wait();
-            }
-            catch (Exception e)
-            {
-                throw new MonithorClientException($"HeartBeat failed. Reason :", e);
-            }
+            Disconnected?.Invoke();
         }
 
-        protected async Task EnsureConnection()
+        private void _client_ExceptionOccured(SignalRClientException exception)
         {
-            if (_isConnected) return;
-
-            await Connect();
+            OnError?.Invoke(new Error("signalR exception occured", exception.ToString(), ErrorCode.NotConnected));
         }
 
-        public async Task Connect()
+        private void _client_Connected()
         {
+            Connected?.Invoke();
+            OnConnected();
+        }
 
-            Connection = new HubConnectionBuilder()
-                .WithUrl(_baseUrl)
-                .Build();
-
-            try
+        private ConnectionStatus MapConnectionStatus(SignalRHelper.Client.ConnectionStatus connectionStatus)
+        {
+            switch (connectionStatus)
             {
-                await Connection.StartAsync();
-
-                Initialize();
-                OnConnected();
-
-                await Connection.SendAsync($"Declare{GetActorTypeName()}", _name);
-                _isConnected = true;
-                _timer = new Timer((e) => Heartbeat(), null, TimeSpan.FromMilliseconds(0), _heartbeatFrequency);
-            }
-            catch (Exception e)
-            {
-                throw new MonithorClientException($"Connection to {_baseUrl} failed. Reason :", e);
+                case SignalRHelper.Client.ConnectionStatus.Disconnected:
+                    return ConnectionStatus.Disconnected;
+                case SignalRHelper.Client.ConnectionStatus.Healthy:
+                    return ConnectionStatus.Healthy;
+                case SignalRHelper.Client.ConnectionStatus.Disturbed:
+                    return ConnectionStatus.Disturbed;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(connectionStatus), connectionStatus, null);
             }
         }
 
-        protected virtual void OnConnected()
+        public Task DisconnectAsync()
         {
+            return _client.DisconnectAsync();
+        }
 
+        public void Connect()
+        {
+            _client.Connect();
+        }
+
+        protected virtual async void OnConnected()
+        {
+            await Connection.SendAsync($"Declare{GetActorTypeName()}", _name);
         }
 
         protected abstract string GetActorTypeName();
-
-        public void Disconnect()
-        {
-            _timer.Dispose();
-            _isConnected = false;
-        }
     }
 }

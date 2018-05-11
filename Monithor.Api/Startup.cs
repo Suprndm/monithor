@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Monithor.Api.Hub;
+using Monithor.Api.Logging;
 using Monithor.Components;
 using Monithor.Ports;
+using SignalRHelper.Server;
 
 namespace Monithor.Api
 {
@@ -39,23 +41,34 @@ namespace Monithor.Api
             services.AddSingleton<ITraceStorage, MemoryStorage>();
             services.AddSingleton<IHub, HubInterface>();
 
-            services.AddSingleton<IMessageHandler>(provider => 
+
+            var logger = new SimpleLogger();
+
+
+            services.AddSingleton<ILogger>(logger);
+            services.AddSingleton<ILogCollector>(logger);
+
+            services.AddSingleton<DisconnectionDetector>();
+
+            services.AddSingleton<IMessageHandler>(provider =>
                 new MessageHandler(
                     provider.GetService<IHub>(),
                     provider.GetService<ITraceStorage>(),
-                    TimeSpan.FromMilliseconds(1000),
-                    TimeSpan.FromMilliseconds(10000)));
+                    provider.GetService<ILogger>()));
 
 
             services.AddMvc();
             services.AddSignalR();
 
-            var builtProvider = services.BuildServiceProvider();
-            builtProvider.GetService<MessageHandler>();
+            logger.Log("Application started");
+
+            HubConnectionManager.Instance.ClientConnected += (c) => { logger.Log($"client connected {c.Id}"); };
+            HubConnectionManager.Instance.ClientDisconnected += (c) => { logger.Log($"client disconnected {c.Id}"); };
+            HubConnectionManager.Instance.ClientConnectionStatusChanged += (c) => { logger.Log($"client connection status changed {c.Id}. {c.ConnectionStatus}"); };
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
             {
@@ -71,6 +84,8 @@ namespace Monithor.Api
             });
             app.UseCors("CorsPolicy");
             app.UseMvc();
+
+            serviceProvider.GetService<DisconnectionDetector>().Start();
         }
     }
 }

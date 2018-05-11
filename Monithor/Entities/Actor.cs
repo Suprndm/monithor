@@ -13,8 +13,5 @@ namespace Monithor.Entities
         public string Name { get; }
 
         public string Id { get; }
-
-
-        public DateTime? LastHeartbeatReceivedDate { get; set; }
     }
 }
