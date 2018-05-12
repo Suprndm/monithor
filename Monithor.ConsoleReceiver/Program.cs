@@ -16,7 +16,7 @@ namespace Monithor.ConsoleReceiver
         {
             var displayer = new Displayer();
 
-            var monithorReceiver = new MonithorReceiver("http://localhost:52903/thorhub", "ConsoleReceiver");
+            var monithorReceiver = new MonithorReceiver("https://monithor.azurewebsites.net/thorhub", "ConsoleReceiver");
 
             monithorReceiver.Connected += () => { displayer.LogTrace("Connected !"); };
             monithorReceiver.Disconnected += () => { displayer.LogTrace("Disconnected =( "); };

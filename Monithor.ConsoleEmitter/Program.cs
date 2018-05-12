@@ -17,7 +17,7 @@ namespace Monithor.ConsoleEmitter
         {
             var displayer = new Displayer();
 
-            var monithorEmitter = new MonithorEmitter("http://localhost:52903/thorhub", "ConsoleEmitter");
+            var monithorEmitter = new MonithorEmitter("https://monithor.azurewebsites.net/thorhub", "ConsoleEmitter");
 
             monithorEmitter.Connected += () => { displayer.LogTrace("Connected !"); };
             monithorEmitter.Disconnected += () => { displayer.LogTrace("Disconnected =( "); };

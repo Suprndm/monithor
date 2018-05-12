@@ -4,6 +4,10 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\netstandard2.0\Monithor.Client.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="..\Monithor\Definitions\ErrorCode.cs" Link="ErrorCode.cs" />
     <Compile Include="..\Monithor\Definitions\MessageLevel.cs" Link="MessageLevel.cs" />

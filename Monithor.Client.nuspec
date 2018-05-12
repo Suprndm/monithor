@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Monithor.Client</id>
+    <version>1.0.0</version>
+    <authors>NDMCI</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Provides classes for emiting and receiving traces and metrics via sockets</description>
+    <dependencies>
+      <dependency id="Microsoft.AspNetCore.SignalR.Client" version="1.0.0-rc1-final"/>
+      <dependency id="SignalRHelper.Client" version="1.18.131.3"/>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Monithor.Client\bin\release\netstandard2.0\Monithor.Client.dll" target="lib\netstandard2.0" />
+    <file src="Monithor.Client\bin\release\netstandard2.0\Monithor.Client.pdb" target="lib\netstandard2.0" />
+    <file src="Monithor.Client\bin\release\netstandard2.0\Monithor.Client.xml" target="lib\netstandard2.0" />
+  </files>
+</package>
