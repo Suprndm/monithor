@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="1.0.0-rc1-final" />
-    <PackageReference Include="SignalRHelper.Client" Version="1.18.131.3" />
+    <PackageReference Include="SignalRHelper.Client" Version="1.18.131.4" />
   </ItemGroup>
 
 </Project>
