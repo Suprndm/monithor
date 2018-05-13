@@ -23,7 +23,7 @@ namespace Monithor.Api.Hub
 
         public override async Task OnConnectedAsync()
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, "SignalR Users");
+            await Task.Delay(1000);
             await base.OnConnectedAsync();
         }
 
