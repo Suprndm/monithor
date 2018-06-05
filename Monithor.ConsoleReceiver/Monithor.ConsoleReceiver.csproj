@@ -6,10 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="1.0.0-rc1-final" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Monithor.Client\Monithor.Client.csproj" />
     <ProjectReference Include="..\Monithor\Monithor.csproj" />
   </ItemGroup>

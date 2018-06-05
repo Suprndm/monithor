@@ -7,8 +7,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Provides classes for emiting and receiving traces and metrics via sockets</description>
     <dependencies>
-      <dependency id="Microsoft.AspNetCore.SignalR.Client" version="1.0.0-rc1-final"/>
-      <dependency id="SignalRHelper.Client" version="1.18.131.3"/>
+      <dependency id="SignalRHelper.Client" version="1.18.156.1"/>
     </dependencies>
   </metadata>
   <files>
